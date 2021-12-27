@@ -37,7 +37,7 @@ apt upgrade -y &> $LOGFILE
 echo "### Installing and configuring NTP server"
 
 apt install chrony -y &> $LOGFILE
-echo 'allow 10.0.0.0/24' > /etc/chrony/chrony.conf &> $LOGFILE
+echo 'allow 10.0.0.0/24' > /etc/chrony/chrony.conf
 systemctl restart chrony.service &> $LOGFILE
 systemctl enable chrony.service &> $LOGFILE
 
