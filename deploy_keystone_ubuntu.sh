@@ -27,25 +27,27 @@ else
   exit 1
 fi
 
-### Upgrade system
+
 LOGFILE=deploy_keystone.log
 touch $LOGFILE
+echo ### Upgrading system ###
 apt update &> $LOGFILE
 apt upgrade -y &> $LOGFILE
 
-### Install and configure NTP server
+echo "### Install and configure NTP server"
 
 apt install chrony -y &> $LOGFILE
 echo 'allow 10.0.0.0/24' > /etc/chrony/chrony.conf &> $LOGFILE
 systemctl restart chrony.service &> $LOGFILE
 systemctl enable chrony.service &> $LOGFILE
 
-### Enable Openstack Package
+echo "### Installing Openstack client Package"
 
 apt update &> $LOGFILE
 apt install python3-openstackclient -y &> $LOGFILE
 
-### Install and configure MariaDB
+echo "### Installing and configuring MariaDB"
+
 apt install mariadb-server python3-pymysql -y &> $LOGFILE
 
 cat << EOF > /etc/mysql/mariadb.conf.d/99-openstack.cnf
@@ -63,7 +65,7 @@ systemctl restart mariadb.service &> $LOGFILE
 systemctl enable mariadb.service &> $LOGFILE
 
 DB_ROOT_PASS=$(openssl rand -hex $PASS_LEN) &> $LOGFILE
-echo $DB_ROOT_PASS > /root/database_root_pass.txt &> $LOGFILE
+echo $DB_ROOT_PASS > /root/database_root_pass.txt
 
 mysql <<_EOF_
   UPDATE mysql.user SET Password=PASSWORD('${DB_ROOT_PASS}') WHERE User='root';
@@ -74,7 +76,7 @@ mysql <<_EOF_
   FLUSH PRIVILEGES;
 _EOF_
 
-### Install and configure rabbitmq-server
+echo "### Installing and configuring rabbitmq-server"
 
 apt install rabbitmq-server -y &> $LOGFILE
 
@@ -83,14 +85,14 @@ echo $RABBIT_PASS > /root/rabbit_pass.txt
 rabbitmqctl add_user openstack $RABBIT_PASS &> $LOGFILE
 rabbitmqctl set_permissions openstack ".*" ".*" ".*" &> $LOGFILE
 
-### Install memcache
+echo "### Installing memcache"
 
 apt install memcached python3-memcache -y &> $LOGFILE
 sed -i 's/-l 127.0.0.1/-l ${OP_CONTROLLER_IP}/g' /etc/memcached.conf &> $LOGFILE
 systemctl restart memcached &> $LOGFILE
 systemctl enable memcached &> $LOGFILE
 
-### install etcd
+echo "### installing etcd"
 
 apt install etcd -y &> $LOGFILE
 
@@ -110,7 +112,7 @@ EOF
 systemctl restart etcd &> $LOGFILE
 systemctl enable etcd &> $LOGFILE
 
-### configure and install keystone
+echo "### Installing and configuring keystone"
 
 KEYSTONE_DBPASS=$(openssl rand -hex $PASS_LEN) &> $LOGFILE
 echo $KEYSTONE_DBPASS > /root/keystone_db_pass.txt
@@ -127,6 +129,8 @@ echo "@@-> Edit the /etc/keystone/keystone.conf -> https://docs.openstack.org/ke
 
 echo connection = mysql+pymysql://keystone:$KEYSTONE_DBPASS@$HOSTNAME/keystone
 
+echo "### Configuring keystone database/table"
+
 su -s /bin/sh -c "keystone-manage db_sync" keystone &> $LOGFILE
 
 keystone-manage fernet_setup --keystone-user keystone --keystone-group keystone &> $LOGFILE
@@ -142,7 +146,8 @@ echo "@@-> Edit the /etc/apache2/apache2.conf -> https://docs.openstack.org/keys
 systemctl restart apache2.service &> $LOGFILE
 systemctl enable apache2.service &> $LOGFILE
 
-
+echo "DONE"
+echo ""
 echo "###"
 echo "As normal user, execute the following to test installation"
 echo ""
