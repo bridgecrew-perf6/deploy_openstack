@@ -14,7 +14,7 @@
 # 10.0.0.41 opnstack-block-01.rootly.local opnstack-block-01
 # 10.0.0.51 opnstack-object01.rootly.local opnstack-object01
 # 10.0.0.52 opnstack-object02.rootly.local opnstack-object02
-
+clear
 OP_CONTROLLER_IP=10.0.0.11
 PASS_LEN=25
 ### PRE-TESTING
@@ -34,7 +34,7 @@ echo ### Upgrading system ###
 apt update &> $LOGFILE
 apt upgrade -y &> $LOGFILE
 
-echo "### Install and configure NTP server"
+echo "### Installing and configuring NTP server"
 
 apt install chrony -y &> $LOGFILE
 echo 'allow 10.0.0.0/24' > /etc/chrony/chrony.conf &> $LOGFILE
@@ -92,7 +92,7 @@ sed -i 's/-l 127.0.0.1/-l ${OP_CONTROLLER_IP}/g' /etc/memcached.conf &> $LOGFILE
 systemctl restart memcached &> $LOGFILE
 systemctl enable memcached &> $LOGFILE
 
-echo "### installing etcd"
+echo "### Installing etcd"
 
 apt install etcd -y &> $LOGFILE
 
@@ -122,6 +122,8 @@ mysql <<_EOF_
   GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'localhost' IDENTIFIED BY '${KEYSTONE_DBPASS}';
   GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'%' IDENTIFIED BY '${KEYSTONE_DBPASS}';
 _EOF_
+
+echo "### Installation keystone package"
 
 apt install keystone -y &> $LOGFILE
 
