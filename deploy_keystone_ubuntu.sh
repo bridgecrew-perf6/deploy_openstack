@@ -33,6 +33,7 @@ touch $LOGFILE
 echo ### Upgrading system ###
 apt update &> $LOGFILE
 apt upgrade -y &> $LOGFILE
+apt install crudini -y &> $LOGFILE
 
 echo "### Installing and configuring NTP server"
 
@@ -129,7 +130,9 @@ apt install keystone -y &> $LOGFILE
 
 echo "@@-> Edit the /etc/keystone/keystone.conf -> https://docs.openstack.org/keystone/wallaby/install/keystone-install-ubuntu.html"
 KEYSTONE_CON="mysql+pymysql:\/\/keystone:${KEYSTONE_DBPASS}@${HOSTNAME}\/keystone"
-sed -i "s/connection = sqlite:\/\/\/\/var\/lib\/keystone\/keystone.db/connection = ${KEYSTONE_CON}/g" /etc/keystone/keystone.conf
+#sed -i "s/connection = sqlite:\/\/\/\/var\/lib\/keystone\/keystone.db/connection = ${KEYSTONE_CON}/g" /etc/keystone/keystone.conf
+crudini --set /etc/keystone/keystone.conf database connection $KEYSTONE_CON
+crudini --set /etc/keystone/keystone.conf token provider token
 
 echo "### Configuring keystone database/table"
 
