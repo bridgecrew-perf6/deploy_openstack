@@ -128,8 +128,9 @@ echo "### Installation keystone package"
 apt install keystone -y &> $LOGFILE
 
 echo "@@-> Edit the /etc/keystone/keystone.conf -> https://docs.openstack.org/keystone/wallaby/install/keystone-install-ubuntu.html"
+KEYSTONE_CON="mysql+pymysql://keystone:$KEYSTONE_DBPASS@$HOSTNAME/keystone"
 
-echo connection = mysql+pymysql://keystone:$KEYSTONE_DBPASS@$HOSTNAME/keystone
+sed -i "s/^connection = */connection = $KEYSTONE_CON/g" /etc/keystone/keystone.conf
 
 echo "### Configuring keystone database/table"
 
