@@ -28,24 +28,25 @@ else
 fi
 
 ### Upgrade system
-
-apt update
-apt upgrade -y
+LOGFILE=deploy_keystone.log
+touch $LOGFILE
+apt update &> $LOGFILE
+apt upgrade -y &> $LOGFILE
 
 ### Install and configure NTP server
 
-apt install chrony -y
-echo 'allow 10.0.0.0/24' | tee -a /etc/chrony/chrony.conf
-systemctl restart chrony.service
-systemctl enable chrony.service
+apt install chrony -y &> $LOGFILE
+echo 'allow 10.0.0.0/24' > /etc/chrony/chrony.conf &> $LOGFILE
+systemctl restart chrony.service &> $LOGFILE
+systemctl enable chrony.service &> $LOGFILE
 
 ### Enable Openstack Package
 
-apt update
-apt install python3-openstackclient -y
+apt update &> $LOGFILE
+apt install python3-openstackclient -y &> $LOGFILE
 
 ### Install and configure MariaDB
-apt install mariadb-server python3-pymysql -y
+apt install mariadb-server python3-pymysql -y &> $LOGFILE
 
 cat << EOF > /etc/mysql/mariadb.conf.d/99-openstack.cnf
 [mysqld]
@@ -58,11 +59,11 @@ collation-server = utf8_general_ci
 character-set-server = utf8
 EOF
 
-systemctl restart mariadb.service
-systemctl enable mariadb.service
+systemctl restart mariadb.service &> $LOGFILE
+systemctl enable mariadb.service &> $LOGFILE
 
-DB_ROOT_PASS=$(openssl rand -hex $PASS_LEN)
-echo $DB_ROOT_PASS | tee -a /root/database_root_pass.txt
+DB_ROOT_PASS=$(openssl rand -hex $PASS_LEN) &> $LOGFILE
+echo $DB_ROOT_PASS > /root/database_root_pass.txt &> $LOGFILE
 
 mysql <<_EOF_
   UPDATE mysql.user SET Password=PASSWORD('${DB_ROOT_PASS}') WHERE User='root';
@@ -75,23 +76,23 @@ _EOF_
 
 ### Install and configure rabbitmq-server
 
-apt install rabbitmq-server -y
+apt install rabbitmq-server -y &> $LOGFILE
 
-RABBIT_PASS=$(openssl rand -hex $PASS_LEN)
-echo $RABBIT_PASS | tee -a /root/rabbit_pass.txt
-rabbitmqctl add_user openstack $RABBIT_PASS
-rabbitmqctl set_permissions openstack ".*" ".*" ".*"
+RABBIT_PASS=$(openssl rand -hex $PASS_LEN) &> $LOGFILE
+echo $RABBIT_PASS > /root/rabbit_pass.txt
+rabbitmqctl add_user openstack $RABBIT_PASS &> $LOGFILE
+rabbitmqctl set_permissions openstack ".*" ".*" ".*" &> $LOGFILE
 
 ### Install memcache
 
-apt install memcached python3-memcache -y
-sed -i 's/-l 127.0.0.1/-l ${OP_CONTROLLER_IP}/g' /etc/memcached.conf
-systemctl restart memcached
-systemctl enable memcached
+apt install memcached python3-memcache -y &> $LOGFILE
+sed -i 's/-l 127.0.0.1/-l ${OP_CONTROLLER_IP}/g' /etc/memcached.conf &> $LOGFILE
+systemctl restart memcached &> $LOGFILE
+systemctl enable memcached &> $LOGFILE
 
 ### install etcd
 
-apt install etcd -y
+apt install etcd -y &> $LOGFILE
 
 cat << EOF >> /etc/default/etcd
 
@@ -106,13 +107,13 @@ ETCD_LISTEN_PEER_URLS="http://0.0.0.0:2380"
 ETCD_LISTEN_CLIENT_URLS="http://${OP_CONTROLLER_IP}:2379"
 EOF
 
-systemctl restart etcd
-systemctl enable etcd
+systemctl restart etcd &> $LOGFILE
+systemctl enable etcd &> $LOGFILE
 
 ### configure and install keystone
 
-KEYSTONE_DBPASS=$(openssl rand -hex $PASS_LEN)
-echo $KEYSTONE_DBPASS | tee -a /root/keystone_db_pass.txt
+KEYSTONE_DBPASS=$(openssl rand -hex $PASS_LEN) &> $LOGFILE
+echo $KEYSTONE_DBPASS > /root/keystone_db_pass.txt
 
 mysql <<_EOF_
   CREATE DATABASE keystone;
@@ -120,26 +121,26 @@ mysql <<_EOF_
   GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'%' IDENTIFIED BY '${KEYSTONE_DBPASS}';
 _EOF_
 
-apt install keystone -y
+apt install keystone -y &> $LOGFILE
 
 echo "@@-> Edit the /etc/keystone/keystone.conf -> https://docs.openstack.org/keystone/wallaby/install/keystone-install-ubuntu.html"
 
 echo connection = mysql+pymysql://keystone:$KEYSTONE_DBPASS@$HOSTNAME/keystone
 
-su -s /bin/sh -c "keystone-manage db_sync" keystone
+su -s /bin/sh -c "keystone-manage db_sync" keystone &> $LOGFILE
 
-keystone-manage fernet_setup --keystone-user keystone --keystone-group keystone
-keystone-manage credential_setup --keystone-user keystone --keystone-group keystone
+keystone-manage fernet_setup --keystone-user keystone --keystone-group keystone &> $LOGFILE
+keystone-manage credential_setup --keystone-user keystone --keystone-group keystone &> $LOGFILE
 
-ADMIN_PASS=$(openssl rand -hex $PASS_LEN)
-echo $ADMIN_PASS | tee -a /root/admin_pass.txt
+ADMIN_PASS=$(openssl rand -hex $PASS_LEN) &> $LOGFILE
+echo $ADMIN_PASS > /root/admin_pass.txt
 
-keystone-manage bootstrap --bootstrap-password $ADMIN_PASS --bootstrap-admin-url http://$HOSTNAME:5000/v3/ --bootstrap-internal-url http://$HOSTNAME:5000/v3/ --bootstrap-public-url http://$HOSTNAME:5000/v3/ --bootstrap-region-id RegionOne
+keystone-manage bootstrap --bootstrap-password $ADMIN_PASS --bootstrap-admin-url http://$HOSTNAME:5000/v3/ --bootstrap-internal-url http://$HOSTNAME:5000/v3/ --bootstrap-public-url http://$HOSTNAME:5000/v3/ --bootstrap-region-id RegionOne &> $LOGFILE
 
 echo "@@-> Edit the /etc/apache2/apache2.conf -> https://docs.openstack.org/keystone/wallaby/install/keystone-install-ubuntu.html"
 
-systemctl restart apache2.service
-systemctl enable apache2.service
+systemctl restart apache2.service &> $LOGFILE
+systemctl enable apache2.service &> $LOGFILE
 
 
 echo "###"
