@@ -38,7 +38,7 @@ apt install -y nova-api nova-conductor nova-novncproxy nova-scheduler
 NOVA_API_CON="mysql+pymysql://nova:${NOVA_DBPASS}@${HOSTNAME}/nova_api"
 NOVA_CON="mysql+pymysql://nova:${NOVA_DBPASS}@${HOSTNAME}/nova"
 
-crudini --set /etc/nova/nova.conf api_database connection $NOVA_API_CONN
+crudini --set /etc/nova/nova.conf api_database connection $NOVA_API_CON
 crudini --set /etc/nova/nova.conf database connection $NOVA_CON
 crudini --set /etc/nova/nova.conf DEFAULT transport_url rabbit://openstack:${RABBIT_PASS}@${HOSTNAME}:5672/
 crudini --set /etc/nova/nova.conf api auth_strategy keystone
