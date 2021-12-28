@@ -6,7 +6,7 @@ LOGFILE=deploy_placement.log
 touch $LOGFILE
 
 PLACEMENT_DBPASS=$(openssl rand -hex $PASS_LEN) &> $LOGFILE
-echo $PLACEMENT_DBPASS > /root/placement_db_pass.txt
+
 
 mysql <<_EOF_
   CREATE DATABASE placement;
@@ -15,7 +15,7 @@ mysql <<_EOF_
 _EOF_
 
 PLACEMENT_ADMINPASS=$(openssl rand -hex $PASS_LEN) &> $LOGFILE
-echo $PLACEMENT_ADMINPASS > /root/placement_admin_pass.txt
+
 
 openstack user create --domain default --password ${PLACEMENT_ADMINPASS} placement
 openstack role add --project service --user placement admin
@@ -43,3 +43,6 @@ crudini --set /etc/placement/placement.conf keystone_authtoken password = $PLACE
 su -s /bin/sh -c "placement-manage db sync" placement
 
 service apache2 restart
+
+echo export PLACEMENT_DBPASS=$PLACEMENT_DBPASS >> admin-openrc
+echo export PLACEMENT_ADMINPASS=$PLACEMENT_ADMINPASS >> admin-openrc
