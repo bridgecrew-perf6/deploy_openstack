@@ -142,9 +142,9 @@ ADMIN_PASS=$(openssl rand -hex $PASS_LEN) &> $LOGFILE
 echo $ADMIN_PASS > /root/admin_pass.txt
 
 keystone-manage bootstrap --bootstrap-password $ADMIN_PASS --bootstrap-admin-url http://$HOSTNAME:5000/v3/ --bootstrap-internal-url http://$HOSTNAME:5000/v3/ --bootstrap-public-url http://$HOSTNAME:5000/v3/ --bootstrap-region-id RegionOne &> $LOGFILE
-echo "1"
+
 sed -i '1 i\ServerName ${HOSTNAME}' /etc/apache2/apache2.conf
-echo "2"
+
 systemctl restart apache2.service &> $LOGFILE
 systemctl enable apache2.service &> $LOGFILE
 
