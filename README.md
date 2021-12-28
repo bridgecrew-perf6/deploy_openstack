@@ -6,3 +6,4 @@ wget https://github.com/rootly-be/deploy_openstack/raw/main/deploy_keystone_ubun
 chmod +x deploy_keystone_ubuntu.sh
 
 ./deploy_keystone_ubuntu.sh
+
