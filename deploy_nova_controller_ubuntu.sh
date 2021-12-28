@@ -62,13 +62,15 @@ crudini --set /etc/nova/nova.conf glance api_servers http://${HOSTNAME}:9292
 crudini --set /etc/nova/nova.conf oslo_concurrency lock_path /var/lib/nova/tmp
 
 crudini --set /etc/nova/nova.conf placement region_name RegionOne
-crudini --set /etc/nova/nova.conf placement project_domain_name = Default
-crudini --set /etc/nova/nova.conf placement project_name = service
-crudini --set /etc/nova/nova.conf placement auth_type = password
-crudini --set /etc/nova/nova.conf placement user_domain_name = Default
-crudini --set /etc/nova/nova.conf placement auth_url = http://${HOSTNAME}:5000/v3
-crudini --set /etc/nova/nova.conf placement username = placement
-crudini --set /etc/nova/nova.conf placement password = $PLACEMENT_ADMINPASS
+crudini --set /etc/nova/nova.conf placement project_domain_name Default
+crudini --set /etc/nova/nova.conf placement project_name service
+crudini --set /etc/nova/nova.conf placement auth_type password
+crudini --set /etc/nova/nova.conf placement user_domain_name Default
+crudini --set /etc/nova/nova.conf placement auth_url http://${HOSTNAME}:5000/v3
+crudini --set /etc/nova/nova.conf placement username placement
+crudini --set /etc/nova/nova.conf placement password $PLACEMENT_ADMINPASS
+
+crudini --set /etc/nova/nova.conf scheduler discover_hosts_in_cells_interval 300
 
 su -s /bin/sh -c "nova-manage api_db sync" nova
 su -s /bin/sh -c "nova-manage cell_v2 map_cell0" nova
