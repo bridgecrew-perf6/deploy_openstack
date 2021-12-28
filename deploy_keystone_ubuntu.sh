@@ -149,10 +149,7 @@ systemctl restart apache2.service &> $LOGFILE
 systemctl enable apache2.service &> $LOGFILE
 
 echo "DONE :-)"
-echo ""
-echo ""
-echo "### As normal user, execute the following to test installation ###"
-echo ""
+
 echo export OS_USERNAME=admin >> admin-openrc
 echo export OS_PASSWORD=$ADMIN_PASS >> admin-openrc
 echo export OS_PROJECT_NAME=admin >> admin-openrc
@@ -160,20 +157,14 @@ echo export OS_USER_DOMAIN_NAME=Default >> admin-openrc
 echo export OS_PROJECT_DOMAIN_NAME=Default >> admin-openrc
 echo export OS_AUTH_URL=http://$HOSTNAME:5000/v3 >> admin-openrc
 echo export OS_IDENTITY_API_VERSION=3 >> admin-openrc
+
+. admin-openrc
+openstack domain create --description "An Example Domain" example
+openstack project create --domain default --description "Service Project" service
+openstack project create --domain default --description "Demo Project" myproject
+openstack user create --domain default --password Azerty12345 myuser
+openstack role create myrole
+openstack role add --project myproject --user myuser myrole
+
+echo "You can continue and install glance"
 echo ""
-##### AS USER #####
-echo ""
-echo 'openstack domain create --description "An Example Domain" example'
-echo 'openstack project create --domain default --description "Service Project" service'
-echo ""
-echo 'openstack project create --domain default --description "Demo Project" myproject'
-echo 'openstack user create --domain default --password-prompt myuser'
-echo ""
-echo 'openstack role create myrole'
-echo 'openstack role add --project myproject --user myuser myrole'
-echo ""
-echo ""
-#### TESTING WITH PASSWORD PROMPT
-echo unset OS_AUTH_URL OS_PASSWORD
-echo openstack --os-auth-url http://$HOSTNAME:5000/v3 --os-project-domain-name Default --os-user-domain-name Default --os-project-name admin --os-username admin token issue
-echo openstack --os-auth-url http://$HOSTNAME:5000/v3 --os-project-domain-name Default --os-user-domain-name Default --os-project-name myproject --os-username myuser token issue
