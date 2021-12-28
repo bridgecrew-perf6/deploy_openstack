@@ -144,15 +144,15 @@ echo $ADMIN_PASS > /root/admin_pass.txt
 
 keystone-manage bootstrap --bootstrap-password $ADMIN_PASS --bootstrap-admin-url http://$HOSTNAME:5000/v3/ --bootstrap-internal-url http://$HOSTNAME:5000/v3/ --bootstrap-public-url http://$HOSTNAME:5000/v3/ --bootstrap-region-id RegionOne &> $LOGFILE
 
-echo "@@-> Edit the /etc/apache2/apache2.conf -> https://docs.openstack.org/keystone/wallaby/install/keystone-install-ubuntu.html"
+sed -i '1 i\ServerName ${HOSTNAME}' file
 
 systemctl restart apache2.service &> $LOGFILE
 systemctl enable apache2.service &> $LOGFILE
 
-echo "DONE"
+echo "DONE :-)"
 echo ""
-echo "###"
-echo "As normal user, execute the following to test installation"
+echo ""
+echo "### As normal user, execute the following to test installation ###"
 echo ""
 echo export OS_USERNAME=admin
 echo export OS_PASSWORD=$ADMIN_PASS
@@ -162,7 +162,6 @@ echo export OS_PROJECT_DOMAIN_NAME=Default
 echo export OS_AUTH_URL=http://$HOSTNAME:5000/v3
 echo export OS_IDENTITY_API_VERSION=3
 echo ""
-
 ##### AS USER #####
 echo ""
 echo 'openstack domain create --description "An Example Domain" example'
@@ -175,8 +174,7 @@ echo 'openstack role create myrole'
 echo 'openstack role add --project myproject --user myuser myrole'
 echo ""
 echo ""
-#### TESTING
-
+#### TESTING WITH PASSWORD PROMPT
 echo unset OS_AUTH_URL OS_PASSWORD
 echo openstack --os-auth-url http://$HOSTNAME:5000/v3 --os-project-domain-name Default --os-user-domain-name Default --os-project-name admin --os-username admin token issue
 echo openstack --os-auth-url http://$HOSTNAME:5000/v3 --os-project-domain-name Default --os-user-domain-name Default --os-project-name myproject --os-username myuser token issue
