@@ -10,8 +10,8 @@ echo $PLACEMENT_DBPASS > /root/placement_db_pass.txt
 
 mysql <<_EOF_
   CREATE DATABASE placement;
-  GRANT ALL PRIVILEGES ON glance.* TO 'placement'@'localhost' IDENTIFIED BY '${PLACEMENT_DBPASS}';
-  GRANT ALL PRIVILEGES ON glance.* TO 'placement'@'%' IDENTIFIED BY '${PLACEMENT_DBPASS}';
+  GRANT ALL PRIVILEGES ON placement.* TO 'placement'@'localhost' IDENTIFIED BY '${PLACEMENT_DBPASS}';
+  GRANT ALL PRIVILEGES ON placement.* TO 'placement'@'%' IDENTIFIED BY '${PLACEMENT_DBPASS}';
 _EOF_
 
 PLACEMENT_ADMINPASS=$(openssl rand -hex $PASS_LEN) &> $LOGFILE
