@@ -1,12 +1,12 @@
 clear
 
 PASS_LEN=25
-source admin-openrc
+. admin-openrc
+
 LOGFILE=deploy_glance.log
 touch $LOGFILE
 
 GLANCE_DBPASS=$(openssl rand -hex $PASS_LEN) &> $LOGFILE
-echo $GLANCE_DBPASS > /root/glance_db_pass.txt
 
 mysql <<_EOF_
   CREATE DATABASE glance;
@@ -15,7 +15,6 @@ mysql <<_EOF_
 _EOF_
 
 GLANCE_ADMINPASS=$(openssl rand -hex $PASS_LEN) &> $LOGFILE
-echo $GLANCE_ADMINPASS > /root/glance_admin_pass.txt
 
 openstack user create --domain default --password ${GLANCE_ADMINPASS} glance
 openstack role add --project service --user glance admin
@@ -50,5 +49,9 @@ su -s /bin/sh -c "glance-manage db_sync" glance
 
 systemctl restart glance-api
 
+echo export GLANCE_DBPASS=$GLANCE_DBPASS >> admin-openrc
+echo export GLANCE_ADMINPASS=$GLANCE_ADMINPASS >> admin-openrc
+
 wget http://download.cirros-cloud.net/0.4.0/cirros-0.4.0-x86_64-disk.img
 glance image-create --name "cirros" --file cirros-0.4.0-x86_64-disk.img --disk-format qcow2 --container-format bare --visibility=public
+glance image-list
