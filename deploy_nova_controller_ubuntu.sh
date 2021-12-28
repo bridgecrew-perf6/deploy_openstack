@@ -2,7 +2,7 @@ clear
 
 PASS_LEN=25
 . admin-openrc
-LOGFILE=nova_controller_placement.log
+LOGFILE=deploy_nova_controller.log
 touch $LOGFILE
 
 NOVA_DBPASS=$(openssl rand -hex $PASS_LEN) &> $LOGFILE
