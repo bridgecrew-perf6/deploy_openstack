@@ -130,7 +130,7 @@ apt install keystone -y &> $LOGFILE
 
 KEYSTONE_CON="mysql+pymysql://keystone:${KEYSTONE_DBPASS}@${HOSTNAME}/keystone"
 crudini --set /etc/keystone/keystone.conf database connection $KEYSTONE_CON
-crudini --set /etc/keystone/keystone.conf token provider token
+crudini --set /etc/keystone/keystone.conf token provider fernet
 
 echo "### Configuring keystone database/table"
 
