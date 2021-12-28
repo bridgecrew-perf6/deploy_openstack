@@ -1,5 +1,5 @@
 clear
-OP_CONTROLLER_IP=10.0.0.11
+
 PASS_LEN=25
 source admin-openrc
 LOGFILE=deploy_glance.log
@@ -17,7 +17,7 @@ _EOF_
 GLANCE_ADMINPASS=$(openssl rand -hex $PASS_LEN) &> $LOGFILE
 echo $GLANCE_ADMINPASS > /root/glance_admin_pass.txt
 
-openstack user create --domain default --password ${GLANCE_ADMINPASS}
+openstack user create --domain default --password ${GLANCE_ADMINPASS} glance
 openstack role add --project service --user glance admin
 openstack service create --name glance --description "OpenStack Image" image
 openstack endpoint create --region RegionOne image public http://${HOSTNAME}:9292
@@ -31,8 +31,8 @@ GLANCE_CON="mysql+pymysql://glance:${GLANCE_DBPASS}@${HOSTNAME}/glance"
 crudini --set /etc/glance/glance-api.conf database connection $GLANCE_CON
 
 crudini --set /etc/glance/glance-api.conf keystone_authtoken www_authenticate_uri http://${HOSTNAME}:5000
-crudini --set /etc/glance/glance-api.conf keystone_authtoken auth_url http://controller:5000
-crudini --set /etc/glance/glance-api.conf keystone_authtoken memcached_servers controller:11211
+crudini --set /etc/glance/glance-api.conf keystone_authtoken auth_url http://${HOSTNAME}:5000
+crudini --set /etc/glance/glance-api.conf keystone_authtoken memcached_servers ${HOSTNAME}:11211
 crudini --set /etc/glance/glance-api.conf keystone_authtoken auth_type password
 crudini --set /etc/glance/glance-api.conf keystone_authtoken project_domain_name Default
 crudini --set /etc/glance/glance-api.conf keystone_authtoken user_domain_name Default
@@ -50,3 +50,5 @@ su -s /bin/sh -c "glance-manage db_sync" glance
 
 systemctl restart glance-api
 
+wget http://download.cirros-cloud.net/0.4.0/cirros-0.4.0-x86_64-disk.img
+glance image-create --name "cirros" --file cirros-0.4.0-x86_64-disk.img --disk-format qcow2 --container-format bare --visibility=public
