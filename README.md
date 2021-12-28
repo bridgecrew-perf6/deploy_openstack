@@ -18,3 +18,9 @@ wget https://github.com/rootly-be/deploy_openstack/raw/main/deploy_placement_ubu
 chmod +x deploy_placement_ubuntu.sh
 
 ./deploy_placement_ubuntu.sh
+
+wget https://github.com/rootly-be/deploy_openstack/raw/main/deploy_nova_controller_ubuntu.sh
+
+chmod +x deploy_nova_controller_ubuntu.sh
+
+./deploy_nova_controller_ubuntu.sh
