@@ -15,7 +15,7 @@ mysql <<_EOF_
 _EOF_
 
 PLACEMENT_ADMINPASS=$(openssl rand -hex $PASS_LEN) &> $LOGFILE
-echo $PLACEMENT_ADMINPASS > /root/placemennt_admin_pass.txt
+echo $PLACEMENT_ADMINPASS > /root/placement_admin_pass.txt
 
 openstack user create --domain default --password ${PLACEMENT_ADMINPASS} placement
 openstack role add --project service --user placement admin
