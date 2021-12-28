@@ -1,7 +1,7 @@
 clear
 OP_CONTROLLER_IP=10.0.0.11
 PASS_LEN=25
-
+source admin-openrc
 LOGFILE=deploy_glance.log
 touch $LOGFILE
 
@@ -9,7 +9,7 @@ GLANCE_DBPASS=$(openssl rand -hex $PASS_LEN) &> $LOGFILE
 echo $GLANCE_DBPASS > /root/glance_db_pass.txt
 
 mysql <<_EOF_
-  CREATE DATABASE keystone;
+  CREATE DATABASE glance;
   GRANT ALL PRIVILEGES ON glance.* TO 'glance'@'localhost' IDENTIFIED BY '${GLANCE_DBPASS}';
   GRANT ALL PRIVILEGES ON glance.* TO 'glance'@'%' IDENTIFIED BY '${GLANCE_DBPASS}';
 _EOF_
