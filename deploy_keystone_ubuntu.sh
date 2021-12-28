@@ -27,7 +27,6 @@ else
   exit 1
 fi
 
-
 LOGFILE=deploy_keystone.log
 touch $LOGFILE
 echo ### Upgrading system ###
@@ -154,13 +153,13 @@ echo ""
 echo ""
 echo "### As normal user, execute the following to test installation ###"
 echo ""
-echo export OS_USERNAME=admin
-echo export OS_PASSWORD=$ADMIN_PASS
-echo export OS_PROJECT_NAME=admin
-echo export OS_USER_DOMAIN_NAME=Default
-echo export OS_PROJECT_DOMAIN_NAME=Default
-echo export OS_AUTH_URL=http://$HOSTNAME:5000/v3
-echo export OS_IDENTITY_API_VERSION=3
+echo export OS_USERNAME=admin >> admin-openrc
+echo export OS_PASSWORD=$ADMIN_PASS >> admin-openrc
+echo export OS_PROJECT_NAME=admin >> admin-openrc
+echo export OS_USER_DOMAIN_NAME=Default >> admin-openrc
+echo export OS_PROJECT_DOMAIN_NAME=Default >> admin-openrc
+echo export OS_AUTH_URL=http://$HOSTNAME:5000/v3 >> admin-openrc
+echo export OS_IDENTITY_API_VERSION=3 >> admin-openrc
 echo ""
 ##### AS USER #####
 echo ""
