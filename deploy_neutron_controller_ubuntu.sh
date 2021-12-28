@@ -83,7 +83,7 @@ crudini --set /etc/neutron/dhcp_agent.ini DEFAULT enable_isolated_metadata true
 
 METADATA_SECRET=$(openssl rand -hex $PASS_LEN) &> $LOGFILE
 
-crudini --set /etc/neutron/metadata_agent.ini DEFAULT nova_metadata_host controller
+crudini --set /etc/neutron/metadata_agent.ini DEFAULT nova_metadata_host ${HOSTNAME}
 crudini --set /etc/neutron/metadata_agent.ini DEFAULT metadata_proxy_shared_secret ${METADATA_SECRET}
 
 crudini --set /etc/nova/nova.conf neutron auth_url http://${HOSTNAME}:5000
