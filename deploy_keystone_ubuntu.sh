@@ -65,7 +65,7 @@ systemctl restart mariadb.service &> $LOGFILE
 systemctl enable mariadb.service &> $LOGFILE
 
 DB_ROOT_PASS=$(openssl rand -hex $PASS_LEN) &> $LOGFILE
-echo $DB_ROOT_PASS > /root/database_root_pass.txt
+
 
 mysql <<_EOF_
   UPDATE mysql.user SET Password=PASSWORD('${DB_ROOT_PASS}') WHERE User='root';
@@ -81,7 +81,7 @@ echo "### Installing and configuring rabbitmq-server"
 apt install rabbitmq-server -y &> $LOGFILE
 
 RABBIT_PASS=$(openssl rand -hex $PASS_LEN) &> $LOGFILE
-echo $RABBIT_PASS > /root/rabbit_pass.txt
+
 rabbitmqctl add_user openstack $RABBIT_PASS &> $LOGFILE
 rabbitmqctl set_permissions openstack ".*" ".*" ".*" &> $LOGFILE
 
@@ -115,7 +115,6 @@ systemctl enable etcd &> $LOGFILE
 echo "### Installing and configuring keystone"
 
 KEYSTONE_DBPASS=$(openssl rand -hex $PASS_LEN) &> $LOGFILE
-echo $KEYSTONE_DBPASS > /root/keystone_db_pass.txt
 
 mysql <<_EOF_
   CREATE DATABASE keystone;
@@ -139,7 +138,6 @@ keystone-manage fernet_setup --keystone-user keystone --keystone-group keystone 
 keystone-manage credential_setup --keystone-user keystone --keystone-group keystone &> $LOGFILE
 
 ADMIN_PASS=$(openssl rand -hex $PASS_LEN) &> $LOGFILE
-echo $ADMIN_PASS > /root/admin_pass.txt
 
 keystone-manage bootstrap --bootstrap-password $ADMIN_PASS --bootstrap-admin-url http://$HOSTNAME:5000/v3/ --bootstrap-internal-url http://$HOSTNAME:5000/v3/ --bootstrap-public-url http://$HOSTNAME:5000/v3/ --bootstrap-region-id RegionOne &> $LOGFILE
 
@@ -157,6 +155,9 @@ echo export OS_USER_DOMAIN_NAME=Default >> admin-openrc
 echo export OS_PROJECT_DOMAIN_NAME=Default >> admin-openrc
 echo export OS_AUTH_URL=http://$HOSTNAME:5000/v3 >> admin-openrc
 echo export OS_IDENTITY_API_VERSION=3 >> admin-openrc
+echo export DB_ROOT_PASS=$DB_ROOT_PASS >> admin-openrc
+echo export RABBIT_PASS=$RABBIT_PASS >> admin-openrc
+echo export KEYSTONE_DBPASS=$KEYSTONE_DBPASS >> admin-openrc
 
 . admin-openrc
 openstack domain create --description "An Example Domain" example
