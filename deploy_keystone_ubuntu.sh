@@ -146,8 +146,6 @@ sed -i '1 i\ServerName ${HOSTNAME}' /etc/apache2/apache2.conf
 systemctl restart apache2.service &> $LOGFILE
 systemctl enable apache2.service &> $LOGFILE
 
-echo "DONE :-)"
-
 echo export OS_USERNAME=admin >> admin-openrc
 echo export OS_PASSWORD=$ADMIN_PASS >> admin-openrc
 echo export OS_PROJECT_NAME=admin >> admin-openrc
@@ -167,5 +165,7 @@ openstack user create --domain default --password Azerty12345 myuser
 openstack role create myrole
 openstack role add --project myproject --user myuser myrole
 
+echo "DONE :-)"
+echo ""
 echo "You can continue and install glance"
 echo ""
