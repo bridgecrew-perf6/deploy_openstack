@@ -156,6 +156,7 @@ echo export OS_IDENTITY_API_VERSION=3 >> admin-openrc
 echo export DB_ROOT_PASS=$DB_ROOT_PASS >> admin-openrc
 echo export RABBIT_PASS=$RABBIT_PASS >> admin-openrc
 echo export KEYSTONE_DBPASS=$KEYSTONE_DBPASS >> admin-openrc
+echo export OP_CONTROLLER_IP=$OP_CONTROLLER_IP >> admin-openrc
 
 . admin-openrc
 openstack domain create --description "An Example Domain" example
