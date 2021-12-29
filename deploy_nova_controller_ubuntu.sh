@@ -55,8 +55,8 @@ crudini --set /etc/nova/nova.conf keystone_authtoken password $NOVA_ADMINPASS
 
 crudini --set /etc/nova/nova.conf DEFAULT my_ip $OP_CONTROLLER_IP
 crudini --set /etc/nova/nova.conf vnc enabled true
-crudini --set /etc/nova/nova.conf vnc server_listen $my_ip
-crudini --set /etc/nova/nova.conf vnc server_proxyclient_address $my_ip
+crudini --set /etc/nova/nova.conf vnc server_listen '$my_ip'
+crudini --set /etc/nova/nova.conf vnc server_proxyclient_address '$my_ip'
 
 crudini --set /etc/nova/nova.conf glance api_servers http://${HOSTNAME}:9292
 crudini --set /etc/nova/nova.conf oslo_concurrency lock_path /var/lib/nova/tmp
