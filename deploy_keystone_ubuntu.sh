@@ -88,7 +88,7 @@ rabbitmqctl set_permissions openstack ".*" ".*" ".*" &> $LOGFILE
 echo "### Installing memcache"
 
 apt install memcached python3-memcache -y &> $LOGFILE
-sed -i 's/-l 127.0.0.1/-l ${OP_CONTROLLER_IP}/g' /etc/memcached.conf &> $LOGFILE
+sed -i "s/-l 127.0.0.1/-l $OP_CONTROLLER_IP/g" /etc/memcached.conf &> $LOGFILE
 systemctl restart memcached &> $LOGFILE
 systemctl enable memcached &> $LOGFILE
 
