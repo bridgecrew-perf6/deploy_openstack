@@ -2,6 +2,7 @@ clear
 
 PASS_LEN=25
 . admin-openrc
+OS_CONTROLLER=10.0.0.11
 LOGFILE=deploy_nova_compute_node.log
 touch $LOGFILE
 
