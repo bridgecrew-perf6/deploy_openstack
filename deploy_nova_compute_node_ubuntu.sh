@@ -5,7 +5,7 @@ PASS_LEN=25
 LOGFILE=deploy_nova_compute_node.log
 touch $LOGFILE
 
-apt install -y nova-compute
+apt install -y crudini nova-compute
 
 crudini --set /etc/nova/nova.conf DEFAULT transport_url rabbit://openstack:$RABBIT_PASS@${OS_CONTROLLER}
 
