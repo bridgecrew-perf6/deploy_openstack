@@ -24,7 +24,7 @@ crudini --set /etc/nova/nova.conf keystone_authtoken password $NOVA_ADMINPASS
 crudini --set /etc/nova/nova.conf DEFAULT my_ip MANAGEMENT_INTERFACE_IP_ADDRESS *********************************************
 crudini --set /etc/nova/nova.conf vnc enabled true
 crudini --set /etc/nova/nova.conf vnc server_listen 0.0.0.0
-crudini --set /etc/nova/nova.conf vnc server_proxyclient_address $my_ip
+crudini --set /etc/nova/nova.conf vnc server_proxyclient_address '$my_ip'
 crudini --set /etc/nova/nova.conf vnc novncproxy_base_url http://${OS_CONTROLLER}:6080/vnc_auto.html
 
 crudini --set /etc/nova/nova.conf glance api_servers http://${OS_CONTROLLER}:9292
