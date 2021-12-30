@@ -41,7 +41,7 @@ crudini --set /etc/placement/placement.conf keystone_authtoken username placemen
 crudini --set /etc/placement/placement.conf keystone_authtoken password $PLACEMENT_ADMINPASS
 
 su -s /bin/sh -c "placement-manage db sync" placement
-
+apt install -y python3-osc-placement
 service apache2 restart
 
 echo export PLACEMENT_DBPASS=$PLACEMENT_DBPASS >> admin-openrc
