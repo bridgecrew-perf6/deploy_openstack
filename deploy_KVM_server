@@ -1,0 +1,139 @@
+apt update -y
+apt upgrade -y
+
+#### VARS 
+PASSWORD_LEN=12
+NEW_HOSTNAME=s-rootly-02
+NEWUSER_USERNAME=michegr
+NEWUSER_COMMENT="Grégory MICHEL"
+NEWSSH_PORT=39222
+####
+
+#### CHANGE HOSTNAME
+CURRENT_HOSTNAME=$(hostname)
+sed -i "s/$CURRENT_HOSTNAME/$NEW_HOSTNAME/g" /etc/hosts
+hostnamectl set-hostname $NEW_HOSTNAME
+####
+
+#### INSTALL NETWORK RELATED TOOLS
+
+echo iptables-persistent iptables-persistent/autosave_v4 boolean true | sudo debconf-set-selections
+echo iptables-persistent iptables-persistent/autosave_v6 boolean true | sudo debconf-set-selections
+apt install -y iptables iptables-persistent ipcalc
+iptables -A INPUT -p icmp -j DROP
+iptables-save > /etc/iptables/rules.v4
+####
+
+#### ADD FIRST MANAGER USER
+useradd -d /home/"$NEWUSER_USERNAME" -m -c "$NEWUSER_COMMENT" -s /bin/bash "$NEWUSER_USERNAME"
+adduser $NEWUSER_USERNAME sudo
+NEWUSER_PASS=$(openssl rand -hex $PASSWORD_LEN)
+echo $NEWUSER_PASS > /home/$NEWUSER_USERNAME/.mypasswd.txt
+chmod 600 /home/$NEWUSER_USERNAME/.mypasswd.txt
+echo -e "$NEWUSER_PASS\n$NEWUSER_PASS" | passwd michegr
+su -s /bin/sh -c 'ssh-keygen -t rsa -f ~/.ssh/id_rsa -N ""' $NEWUSER_USERNAME
+####
+
+#### NETWORK CONFIGURATION
+NETWORK_INTERFACE_COUNT=$(ls /sys/class/net/ | grep -v lo | grep ^en |wc -l)
+if [[ "$NETWORK_INTERFACE_COUNT" < 1 ]];then echo "There is multiple network interface";else PRIMARY_INTERFACE=$(ls /sys/class/net/ | grep -v lo | grep ^en );fi
+PRIMARY_IPADDR=$(ip a s $PRIMARY_INTERFACE | grep "inet\b" | awk '{print $2}' | cut -d/ -f1)
+PRIMARY_NETMASK_CIRD=$(ip a s $PRIMARY_INTERFACE | grep "inet\b" | awk '{print $2}' | cut -d/ -f2)
+PRIMARY_NETMASK=$(ipcalc $PRIMARY_IPADDR/$PRIMARY_NETMASK_CIRD | grep Netmask | awk '{print $2}')
+
+#### CONFIGURE NOPASSWORD CONFIGURATION
+wget -O /home/$NEWUSER_USERNAME/.ssh/authorized_keys https://github.com/rootly-be/post-install-script/raw/master/pub_key.txt
+chown $NEWUSER_USERNAME:$NEWUSER_USERNAME /home/$NEWUSER_USERNAME/.ssh/authorized_keys
+chmod 600 /home/$NEWUSER_USERNAME/.ssh/authorized_keys
+
+#### SSH CONFIGURATION
+sed -i "s/^#Port 22/Port $NEWSSH_PORT/g" /etc/ssh/sshd_config
+sed -i 's/PermitRootLogin without-password/PermitRootLogin no/g' /etc/ssh/sshd_config
+sed -i 's/#ClientAliveInterval 0/ClientAliveInterval 120/g' /etc/ssh/sshd_config
+sed -i 's/#ClientAliveCountMax 3/ClientAliveCountMax 30/g' /etc/ssh/sshd_config
+	## ACTIVATE X11
+apt-get install xauth -y
+sed -i '/^#.*X11UseLocalhost*/s/^#//' /etc/ssh/sshd_config
+sed -i 's/^X11UseLocalhost yes/X11UseLocalhost no/g' /etc/ssh/sshd_config
+systemctl restart sshd
+	##
+####
+
+#### CONFIGURE TIME/ZONE
+ln -fs /usr/share/zoneinfo/Europe/Brussels /etc/localtime
+apt-get install tzdata -y
+dpkg-reconfigure --frontend noninteractive tzdata
+#### 
+
+#### INSTALL VARIA TOOLS
+apt install -y fail2ban
+#### INSTALL VARIA TOOLS
+
+#### ENABLE AND START INSTALLED SERVICES
+systemctl enable fail2ban
+systemctl start fail2ban
+
+apt install -y qemu-kvm libvirt-daemon  bridge-utils virtinst libvirt-daemon-system dnsmasq
+apt install -y virt-top libguestfs-tools libosinfo-bin qemu-system virt-manager cloud-image-utils
+usermod -a -G libvirt $NEWUSER_USERNAME
+usermod -a -G libvirt-qemu $NEWUSER_USERNAME
+
+
+
+iptables -t nat -A POSTROUTING -o $PRIMARY_INTERFACE -j MASQUERADE
+
+iptables-save > /etc/iptables/rules.v4
+
+cat <<EOF >> /root/management01.xml
+<network>
+<name>management01</name>
+<bridge name="kvmanagement"/>
+<forward mode="nat"  dev='$PRIMARY_INTERFACE'/>
+<ip address="11.10.10.1" netmask="255.255.255.0">
+<dhcp>
+<range start="11.10.10.2" end="11.10.10.254"/>
+</dhcp>
+</ip>
+</network>
+EOF
+
+cat <<EOF >> /root/provider01.xml
+<network>
+<name>provider01</name>
+<bridge name="kvminternet"/>
+<forward mode="route" dev='$PRIMARY_INTERFACE'/>
+<ip address='$PRIMARY_IPADDR' netmask='$PRIMARY_NETMASK'>
+</ip>
+</network>
+EOF
+
+
+virsh net-define /root/management01.xml
+virsh net-define /root/provider01.xml
+virsh net-list
+virsh net-list --all
+virsh net-autostart  management01
+virsh net-autostart  provider01
+virsh net-start management01
+virsh net-start provider01
+
+virsh net-update management01 add ip-dhcp-host "<host mac='52:54:00:00:e4:33' name='opnstack-controller-01' ip='11.10.10.60'/>"
+
+cd
+ 
+curl -O https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img
+
+qemu-img create -b focal-server-cloudimg-amd64.img -f qcow2 -F qcow2 focal-server-template.qcow2 100G
+
+virt-install --name opnstack-manager-01 \
+  --virt-type kvm --memory 8192 --vcpus 2 \
+  --boot hd,menu=on \
+  --disk path=opnstack-controller-01.img,device=cdrom \
+  --disk path=opnstack-controller-01.qcow2,device=disk \
+  --graphics vnc \
+  --os-type Linux --os-variant ubuntu20.04 \
+  --network network:management01 \
+  --console pty,target_type=serial
+
+
+virsh net-dhcp-leases management01
